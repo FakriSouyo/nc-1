@@ -373,3 +373,5 @@ export interface DashboardData {
 }
 
 export type UserRole = 'user' | 'admin' | 'kasir'
+// In types.ts
+export type Profile = Database['public']['Tables']['profiles']['Row']

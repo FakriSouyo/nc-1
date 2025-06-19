@@ -1,111 +1,89 @@
-import Link from 'next/link'
+'use client'
+
+import { useAuthContext } from '@/components/auth/auth-provider'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Coffee, Users, Gift, BarChart } from 'lucide-react'
+import { Card } from '@/components/ui/card'
+import { useRouter } from 'next/navigation'
+import { Coffee, History, Receipt, Settings } from 'lucide-react'
 
 export default function HomePage() {
+  const { user } = useAuthContext()
+  const router = useRouter()
+
+  const getStartedPath = user?.role === 'admin'
+    ? '/admin'
+    : user?.role === 'kasir'
+    ? '/kasir'
+    : '/dashboard'
+
+  const features = [
+    {
+      title: 'Order Management',
+      description: 'Create and manage orders with our intuitive interface.',
+      icon: Receipt,
+      path: user?.role === 'kasir' ? '/kasir' : '/dashboard/history',
+    },
+    {
+      title: 'Menu Selection',
+      description: 'Browse our wide selection of coffee and beverages.',
+      icon: Coffee,
+      path: user?.role === 'admin' ? '/admin/menu' : '/dashboard',
+    },
+    {
+      title: 'Order History',
+      description: 'Track your past orders and preferences.',
+      icon: History,
+      path: user?.role === 'kasir' ? '/kasir/orders' : '/dashboard/history',
+    },
+    {
+      title: 'Account Settings',
+      description: 'Manage your profile and preferences.',
+      icon: Settings,
+      path: '/dashboard/profile',
+    },
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
-      {/* Header */}
-      <header className="container mx-auto px-4 py-6">
-        <nav className="flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Coffee className="h-8 w-8 text-amber-600" />
-            <span className="text-2xl font-bold text-gray-900">CoffeeShop</span>
-          </div>
-          <div className="space-x-4">
-            <Button variant="outline" asChild>
-              <Link href="/login">Login</Link>
+    <div className="container">
+      <div className="flex flex-col items-center justify-center space-y-4 text-center">
+        <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
+          Welcome to Coffee Shop
+        </h1>
+        <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+          Your one-stop destination for delicious coffee and beverages.
+          {!user && ' Sign in to start ordering and tracking your coffee journey.'}
+        </p>
+        <div className="space-x-4">
+          {!user ? (
+            <>
+              <Button onClick={() => router.push('/login')}>
+                Sign In
+              </Button>
+              <Button variant="outline" onClick={() => router.push('/register')}>
+                Register
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => router.push(getStartedPath)}>
+              Get Started
             </Button>
-            <Button asChild>
-              <Link href="/register">Register</Link>
-            </Button>
-          </div>
-        </nav>
-      </header>
-
-      {/* Hero Section */}
-      <main className="container mx-auto px-4 py-12">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Welcome to Your Coffee Journey
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Track your caffeine, collect points, shake for vouchers, and enjoy the perfect coffee experience.
-          </p>
-          <div className="space-x-4">
-            <Button size="lg" asChild>
-              <Link href="/register">Get Started</Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-          </div>
+          )}
         </div>
+      </div>
 
-        {/* Features */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <Card>
-            <CardHeader>
-              <Coffee className="h-12 w-12 text-amber-600 mb-4" />
-              <CardTitle>Caffeine Tracking</CardTitle>
-              <CardDescription>
-                Monitor your daily caffeine intake and stay healthy
-              </CardDescription>
-            </CardHeader>
+      <div className="mt-16 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+        {features.map((feature) => (
+          <Card
+            key={feature.title}
+            className="p-6 cursor-pointer transition-colors hover:bg-muted/50"
+            onClick={() => user && router.push(feature.path)}
+          >
+            <feature.icon className="h-12 w-12 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+            <p className="text-sm text-muted-foreground">{feature.description}</p>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <Gift className="h-12 w-12 text-green-600 mb-4" />
-              <CardTitle>Shake for Vouchers</CardTitle>
-              <CardDescription>
-                Shake your phone 3 times per week to get amazing discounts
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <Users className="h-12 w-12 text-blue-600 mb-4" />
-              <CardTitle>Points & Rewards</CardTitle>
-              <CardDescription>
-                Earn points with every purchase and redeem for rewards
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <BarChart className="h-12 w-12 text-purple-600 mb-4" />
-              <CardTitle>Order Tracking</CardTitle>
-              <CardDescription>
-                Keep track of your orders and coffee preferences
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* CTA Section */}
-        <div className="text-center bg-white rounded-2xl shadow-lg p-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Ready to Start Your Coffee Adventure?
-          </h2>
-          <p className="text-gray-600 mb-8">
-            Join thousands of coffee lovers who are already tracking their caffeine and earning rewards.
-          </p>
-          <Button size="lg" asChild>
-            <Link href="/register">Create Account Now</Link>
-          </Button>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 mt-16 border-t">
-        <div className="text-center text-gray-600">
-          <p>&copy; 2024 Coffee Shop App. All rights reserved.</p>
-        </div>
-      </footer>
+        ))}
+      </div>
     </div>
   )
 }

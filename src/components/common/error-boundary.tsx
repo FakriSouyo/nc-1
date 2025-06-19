@@ -1,42 +1,54 @@
-// components/common/error-boundary.tsx
-
 'use client'
 
-import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { Component, ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { AlertTriangle } from 'lucide-react'
 
 interface Props {
   children: ReactNode
+  fallback?: ReactNode
 }
 
 interface State {
   hasError: boolean
+  error: Error | null
 }
 
-class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = { hasError: false, error: null }
   }
 
-  public static getDerivedStateFromError(_: Error): State {
-    // Update state so the next render will show the fallback UI.
-    return { hasError: true }
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error }
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo)
+  componentDidCatch(error: Error) {
+    console.error('ErrorBoundary caught an error:', error)
   }
 
-  public render() {
+  render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback
+      }
+
       return (
-        <div className="flex h-screen w-full flex-col items-center justify-center text-center">
-          <h1 className="text-2xl font-bold">Oops! Terjadi Kesalahan.</h1>
-          <p className="mb-4 text-muted-foreground">
-            Maaf, sesuatu yang tidak terduga terjadi.
+        <div className="flex flex-col items-center justify-center min-h-[200px] p-4">
+          <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
+          <h2 className="text-lg font-semibold mb-2">Something went wrong</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            {this.state.error?.message || 'An unexpected error occurred'}
           </p>
-          <Button onClick={() => this.setState({ hasError: false })}>
-            Coba lagi
+          <Button
+            variant="outline"
+            onClick={() => {
+              this.setState({ hasError: false, error: null })
+              window.location.reload()
+            }}
+          >
+            Try again
           </Button>
         </div>
       )
@@ -46,4 +58,28 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default ErrorBoundary
+// Error component for API errors and other runtime errors
+export function ErrorDisplay({
+  error,
+  resetError,
+}: {
+  error: Error | string
+  resetError?: () => void
+}) {
+  const errorMessage = error instanceof Error ? error.message : error
+
+  return (
+    <div className="flex flex-col items-center justify-center p-4 min-h-[200px]">
+      <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
+      <h2 className="text-lg font-semibold mb-2">Error</h2>
+      <p className="text-sm text-muted-foreground text-center mb-4">
+        {errorMessage}
+      </p>
+      {resetError && (
+        <Button variant="outline" onClick={resetError}>
+          Try again
+        </Button>
+      )}
+    </div>
+  )
+}
